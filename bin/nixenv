@@ -1,0 +1,61 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'cli/ui'
+require 'yaml'
+
+require_relative '../lib/fs'
+require_relative '../lib/fs_utils'
+
+require_relative '../lib/actions/init'
+require_relative '../lib/actions/up'
+require_relative '../lib/actions/down'
+require_relative '../lib/actions/prune'
+require_relative '../lib/actions/start'
+require_relative '../lib/actions/stop'
+require_relative '../lib/actions/rebuild'
+
+CLI::UI::StdoutRouter.enable
+
+raise 'Require exactly one command line argument to opearate' if ARGV.length != 1
+
+pwd = Dir.pwd
+
+configuration = { pwd: pwd }
+
+if FSUtils.nixenv_project?(pwd)
+  config = YAML.safe_load(File.read(FS.nixenv_config_file(pwd)), symbolize_names: true)
+
+  # Ensure config has minimun required arguments
+  def raise_missing(argument_name)
+    raise "Missing argument \"#{argument_name}\" from configuration"
+  end
+
+  raise_missing('project') unless config.key?(:project)
+  raise_missing('name') unless config[:project].key?(:name)
+  raise_missing('nixpkgs_channel') unless config[:project].key?(:nixpkgs_channel)
+  raise_missing('features') unless config.key?(:features) and not config[:features].nil?
+
+  configuration[:config] = config
+end
+
+case ARGV[0]
+when 'init'
+  Init.run(configuration)
+when 'up'
+  Up.run(configuration)
+when 'down'
+  Down.run(configuration)
+when 'prune'
+  Prune.run(configuration)
+when 'start'
+  Start.run(configuration)
+when 'stop'
+  Stop.run(configuration)
+when 'ls'
+  puts(`incus ls "user.nixenv.instance=1" --columns=nsDmu,devices:x11_socket.source:X11\\ Socket,devices:xauth.source:Xauth,devices:gpu.source:GPU,devices:pipewire_socket.source:Pipewire,devices:pulseaudio_socket.source:Pulseaudio,devices:workspace.source:Workspace`)
+when 'rebuild'
+  Rebuild.run(configuration)
+else
+  raise "Unknown command #{ARGV[0]}"
+end

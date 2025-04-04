@@ -1,0 +1,1 @@
+{...}: builtins.fromJSON("$1")

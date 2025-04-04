@@ -1,0 +1,10 @@
+project:
+  name: nixenv
+  nixpkgs_channel: nixos-24.11
+features:
+  x11:
+  wayland:
+  gpu:
+  pulseaudio:
+  pipewire:
+  user:

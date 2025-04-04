@@ -1,0 +1,11 @@
+project:
+  name: $1
+  nixpkgs_channel: $2
+features:
+  x11:
+    xauth: true
+    display: 0
+  wayland:
+  pipewire:
+  pulseaudio:
+  user:
